@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@keyframes scrollBg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-banner {
+  background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e');
+  animation: scrollBg 30s ease infinite;
+}
