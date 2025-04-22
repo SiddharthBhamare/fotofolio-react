@@ -12,13 +12,9 @@ const handleYouTubeURL = (url: string) => {
   return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}` : "";
 };
 
-const fallbackImage =
-  "https://via.placeholder.com/600x400?text=Image+Not+Found";
-
 const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedItem, setSelectedItem] = useState<any | null>(null); // You can replace 'any' with the correct type
-  const [loading, setLoading] = useState(false);
 
   const categories = [
     "All",
