@@ -27,8 +27,6 @@ const Gallery = () => {
       ? galleryData
       : galleryData.filter((item) => item.category === selectedCategory);
 
-  console.log(filteredImages); // Debugging filtered images
-
   return (
     <div className="relative min-h-screen py-16 overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
