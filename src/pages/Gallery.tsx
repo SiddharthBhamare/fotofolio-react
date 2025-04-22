@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
 import axios from "axios";
 
 interface galleryDataProps {
@@ -12,11 +11,13 @@ interface galleryDataProps {
 }
 
 const Gallery = () => {
-  const [galleryData, setGalleryData] = useState<galleryDataProps[]>([]);
+  const [galleryData, setGalleryData] = useState<galleryDataProps[]>([]); // Default as empty array
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedItem, setSelectedItem] = useState<galleryDataProps | null>(
     null
   );
+  const [loading, setLoading] = useState(true); // Global loading state
+  const [imageLoading, setImageLoading] = useState<boolean[]>([]); // Individual image loading state
 
   // Load data from API
   useEffect(() => {
@@ -28,56 +29,102 @@ const Gallery = () => {
             "X-API-KEY": "my-super-secret-key-test",
           },
         }
-      ) // Replace with your actual API
+      )
       .then((response) => {
-        console.log("API response:", response.data); // Debug log
-        setGalleryData(response.data);
+        const data = Array.isArray(response.data)
+          ? response.data
+          : response.data?.data;
+
+        if (Array.isArray(data)) {
+          setGalleryData(data);
+          setImageLoading(new Array(data.length).fill(true)); // Set loading for all images initially
+        } else {
+          setGalleryData([]); // In case data is not an array
+        }
+        setLoading(false); // Set loading to false when data is fetched
       })
       .catch((error) => {
         console.error("Error fetching gallery data:", error);
+        setLoading(false); // Ensure loading state is false in case of error
       });
   }, []);
 
+  // Categories from the data
   const categories = [
     "All",
     ...new Set(galleryData.map((item) => item.category)),
   ];
 
+  // Filter gallery items based on selected category
   const filteredImages =
     selectedCategory === "All"
       ? galleryData
       : galleryData.filter((item) => item.category === selectedCategory);
 
+  // Fallback image for missing images or youtubeURL
   const fallbackImage =
     "https://via.placeholder.com/600x400?text=Image+Not+Found";
 
+  // Handle image errors (in case image fails to load)
   const handleImageError = (
-    event: React.SyntheticEvent<HTMLImageElement, Event>
+    event: React.SyntheticEvent<HTMLImageElement, Event>,
+    index: number
   ) => {
     event.currentTarget.src = fallbackImage;
+    setImageLoading((prev) => {
+      const updatedLoading = [...prev];
+      updatedLoading[index] = false;
+      return updatedLoading;
+    });
   };
 
-  const handleYouTubeURL = (url: string) => {
-    // Clean the YouTube URL to embed it
-    if (url.includes("watch?v=")) {
-      return url.replace("watch?v=", "embed/").split("&")[0];
-    }
-    return url;
+  // Handle image load success
+  const handleImageLoad = (index: number) => {
+    setImageLoading((prev) => {
+      const updatedLoading = [...prev];
+      updatedLoading[index] = false;
+      return updatedLoading;
+    });
   };
+
+  // Function to handle YouTube URL formatting
+  const handleYouTubeURL = (url: string) => {
+    const videoId = url.split("v=")[1];
+    return `https://www.youtube.com/embed/${videoId}`;
+  };
+
+  // Loading spinner component
+  const LoadingSpinner = () => (
+    <div className="flex justify-center items-center h-screen">
+      <svg
+        className="animate-spin h-12 w-12 text-black"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          strokeWidth="4"
+        ></circle>
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 0115.535 4.95M2 12a10 10 0 1018 5.314"
+        ></path>
+      </svg>
+    </div>
+  );
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="relative min-h-screen py-16 overflow-hidden">
-      {/* Background Image */}
-      {/* <div
-        className="absolute inset-0 bg-cover bg-center z-0"
-        style={{
-          backgroundImage: `url(${bacImage})`,
-        }}
-      >
-        <div className="w-full h-full"></div>
-      </div> */}
-
-      {/* Main Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
         <h2 className="text-4xl font-bold mb-12">Reference Work</h2>
 
@@ -88,8 +135,8 @@ const Gallery = () => {
               key={category}
               className={`px-6 py-2 rounded-full border-2 text-lg transition ${
                 selectedCategory === category
-                  ? "text-black border-black rounded-full text-lg font-semibold hover:scale-105 transform transition duration-300 shadow-lg border-1 border-black border-solid"
-                  : "text-black rounded-full text-lg font-semibold hover:scale-105 transform transition duration-300 shadow-lg border-1 border-black border-solid"
+                  ? "text-black border-black font-semibold hover:scale-105 transform transition duration-300 shadow-lg"
+                  : "text-black font-semibold hover:scale-105 transform transition duration-300 shadow-lg"
               }`}
               onClick={() => setSelectedCategory(category)}
             >
@@ -101,7 +148,7 @@ const Gallery = () => {
         {/* Grid Display */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           <AnimatePresence>
-            {filteredImages.map((item) => (
+            {filteredImages.map((item, index) => (
               <motion.div
                 key={item.id}
                 layout
@@ -110,13 +157,17 @@ const Gallery = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
                 className="group relative overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-all bg-white"
-                onClick={() => setSelectedItem(item)} // Set the selected item
+                onClick={() => setSelectedItem(item)}
               >
-                {item.image ? (
+                {/* Show loading spinner or actual content */}
+                {imageLoading[index] ? (
+                  <div className="w-full h-64 bg-gray-200 animate-pulse"></div> // Placeholder while loading
+                ) : item.image ? (
                   <img
                     src={`data:image/jpeg;base64,${item.image}`}
                     alt={item.title}
-                    onError={handleImageError}
+                    onError={(e) => handleImageError(e, index)}
+                    onLoad={() => handleImageLoad(index)}
                     className="w-full h-64 object-cover group-hover:scale-105 transition-all duration-300"
                   />
                 ) : item.youtubeURL ? (
@@ -131,7 +182,7 @@ const Gallery = () => {
                   ></iframe>
                 ) : (
                   <img
-                    src={fallbackImage} // Fallback image for missing image or youtubeURL
+                    src={fallbackImage}
                     alt="Fallback"
                     className="w-full h-64 object-cover"
                   />
@@ -161,7 +212,7 @@ const Gallery = () => {
               <motion.img
                 src={`data:image/jpeg;base64,${selectedItem.image}`}
                 alt={selectedItem.title}
-                onClick={(e) => e.stopPropagation()} // Prevent closing the modal when clicking the image
+                onClick={(e) => e.stopPropagation()}
                 className="max-w-full max-h-full rounded-lg shadow-lg"
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
@@ -178,7 +229,7 @@ const Gallery = () => {
               ></iframe>
             ) : (
               <img
-                src={fallbackImage} // Fallback image for missing image or youtubeURL
+                src={fallbackImage}
                 alt="Fallback"
                 className="w-full h-full"
               />
