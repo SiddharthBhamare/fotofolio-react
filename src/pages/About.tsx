@@ -64,7 +64,7 @@ const About = () => {
           <img
             src={profileImageSrc}
             alt="Profile"
-            className="mx-auto rounded-full shadow-lg w-48 h-48 object-cover border-4 border-green-400"
+            className="mx-auto rounded-full shadow-lg w-48 h-48 object-cover border-4 border-green-400 bg-white"
             referrerPolicy="no-referrer"
           />
           <p className="mt-4 text-sm text-gray-300 italic">
