@@ -104,29 +104,42 @@ const Gallery = () => {
       <AnimatePresence>
         {selectedItem && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedItem(null)}
           >
-            {selectedItem.imageUrl.includes("youtube.com") ||
-            selectedItem.imageUrl.includes("youtu.be") ? (
-              <iframe
-                width="80%"
-                height="80%"
-                src={handleYouTubeURL(selectedItem.imageUrl)}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={selectedItem.title}
-              ></iframe>
-            ) : (
-              <img
-                src={selectedItem.imageUrl}
-                alt={selectedItem.title}
-                className="max-w-full max-h-full rounded-lg shadow-lg"
-              />
-            )}
+            <div
+              className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center bg-black rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-2 right-2 text-white text-2xl bg-black bg-opacity-60 rounded-full px-3 py-1 hover:bg-opacity-80 transition"
+                onClick={() => setSelectedItem(null)}
+              >
+                &times;
+              </button>
+
+              {selectedItem.imageUrl.includes("youtube.com") ||
+              selectedItem.imageUrl.includes("youtu.be") ? (
+                <iframe
+                  width="100%"
+                  height="500"
+                  src={handleYouTubeURL(selectedItem.imageUrl)}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={selectedItem.title}
+                  className="rounded-lg"
+                ></iframe>
+              ) : (
+                <img
+                  src={selectedItem.imageUrl}
+                  alt={selectedItem.title}
+                  className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
+                />
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
