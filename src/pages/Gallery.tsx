@@ -1,127 +1,44 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 
-interface galleryDataProps {
-  id: string;
-  category: string;
-  title: string;
-  youtubeURL: string;
-  image: string | null;
-}
-
-const fallbackImage =
-  "https://via.placeholder.com/600x400?text=Image+Not+Found";
+// Assuming galleryData is imported from a separate file
+import galleryData from "../data/galleryData";
 
 // Helper to embed YouTube video from URL
 const handleYouTubeURL = (url: string) => {
   const videoIdMatch = url.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/ // Regex pattern
   );
   return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}` : "";
 };
 
+const fallbackImage =
+  "https://via.placeholder.com/600x400?text=Image+Not+Found";
+
 const Gallery = () => {
-  const [galleryData, setGalleryData] = useState<galleryDataProps[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedItem, setSelectedItem] = useState<galleryDataProps | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
-  const [imageLoading, setImageLoading] = useState<boolean[]>([]);
-
-  useEffect(() => {
-    axios
-      .get(
-        "https://fotofolioapi-production.up.railway.app/api/RawData/getall",
-        {
-          headers: {
-            "X-API-KEY": "my-super-secret-key-test",
-          },
-        }
-      )
-      .then((response) => {
-        const data = Array.isArray(response.data)
-          ? response.data
-          : response.data?.data;
-
-        if (Array.isArray(data)) {
-          setGalleryData(data);
-          setImageLoading(new Array(data.length).fill(true));
-        } else {
-          setGalleryData([]);
-        }
-
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching gallery data:", error);
-        setLoading(false);
-      });
-  }, []);
-
-  const handleImageError = (
-    event: React.SyntheticEvent<HTMLImageElement, Event>,
-    index: number
-  ) => {
-    event.currentTarget.src = fallbackImage;
-    setImageLoading((prev) => {
-      const updated = [...prev];
-      updated[index] = false;
-      return updated;
-    });
-  };
-
-  const handleImageLoad = (index: number) => {
-    setImageLoading((prev) => {
-      const updated = [...prev];
-      updated[index] = false;
-      return updated;
-    });
-  };
+  const [selectedItem, setSelectedItem] = useState<any | null>(null); // You can replace 'any' with the correct type
+  const [loading, setLoading] = useState(false);
 
   const categories = [
     "All",
-    ...new Set(galleryData.map((item) => item.category)),
+    ...new Set(galleryData.map((item) => item.category)), // Create a unique list of categories
   ];
 
+  // Filter images based on selected category
   const filteredImages =
     selectedCategory === "All"
       ? galleryData
       : galleryData.filter((item) => item.category === selectedCategory);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <svg
-          className="animate-spin h-12 w-12 text-black"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 0115.535 4.95M2 12a10 10 0 1018 5.314"
-          ></path>
-        </svg>
-      </div>
-    );
-  }
+  console.log(filteredImages); // Debugging filtered images
 
   return (
     <div className="relative min-h-screen py-16 overflow-hidden">
       <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
         <h2 className="text-4xl font-bold mb-12">Reference Work</h2>
 
+        {/* Category Buttons */}
         <div className="flex flex-wrap justify-center gap-6 mb-10">
           {categories.map((category) => (
             <button
@@ -138,9 +55,10 @@ const Gallery = () => {
           ))}
         </div>
 
+        {/* Gallery Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           <AnimatePresence>
-            {filteredImages.map((item, index) => (
+            {filteredImages.map((item) => (
               <motion.div
                 key={item.id}
                 layout
@@ -149,31 +67,19 @@ const Gallery = () => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
                 className="group relative overflow-hidden rounded-lg shadow-lg bg-white hover:shadow-xl transition-all"
-                onClick={() => setSelectedItem(item)}
+                onClick={() => {
+                  setSelectedItem(item);
+                  console.log(item); // Debugging selected item
+                }}
               >
                 <div className="relative w-full h-64 bg-gray-100">
-                  {item.image ? (
-                    <>
-                      {imageLoading[index] && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gray-200 z-10">
-                          <div className="animate-spin h-8 w-8 border-2 border-t-transparent border-black rounded-full"></div>
-                        </div>
-                      )}
-                      <img
-                        src={`data:image/jpeg;base64,${item.image}`}
-                        alt={item.title}
-                        onLoad={() => handleImageLoad(index)}
-                        onError={(e) => handleImageError(e, index)}
-                        className={`w-full h-full object-cover transition-opacity duration-500 ${
-                          imageLoading[index] ? "opacity-0" : "opacity-100"
-                        }`}
-                      />
-                    </>
-                  ) : item.youtubeURL ? (
+                  {/* If the item is a YouTube URL, embed the video */}
+                  {item.imageUrl.includes("youtube.com") ||
+                  item.imageUrl.includes("youtu.be") ? (
                     <iframe
                       width="100%"
                       height="100%"
-                      src={handleYouTubeURL(item.youtubeURL)}
+                      src={handleYouTubeURL(item.imageUrl)}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       title={item.title}
@@ -181,8 +87,8 @@ const Gallery = () => {
                     ></iframe>
                   ) : (
                     <img
-                      src={fallbackImage}
-                      alt="Fallback"
+                      src={item.imageUrl}
+                      alt={item.title}
                       className="w-full h-full object-cover"
                     />
                   )}
@@ -198,6 +104,7 @@ const Gallery = () => {
         </div>
       </div>
 
+      {/* Modal for selected item */}
       <AnimatePresence>
         {selectedItem && (
           <motion.div
@@ -207,30 +114,21 @@ const Gallery = () => {
             exit={{ opacity: 0 }}
             onClick={() => setSelectedItem(null)}
           >
-            {selectedItem.image ? (
-              <motion.img
-                src={`data:image/jpeg;base64,${selectedItem.image}`}
-                alt={selectedItem.title}
-                onClick={(e) => e.stopPropagation()}
-                className="max-w-full max-h-full rounded-lg shadow-lg"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.8 }}
-              />
-            ) : selectedItem.youtubeURL ? (
+            {selectedItem.imageUrl.includes("youtube.com") ||
+            selectedItem.imageUrl.includes("youtu.be") ? (
               <iframe
                 width="80%"
                 height="80%"
-                src={handleYouTubeURL(selectedItem.youtubeURL)}
+                src={handleYouTubeURL(selectedItem.imageUrl)}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title={selectedItem.title}
               ></iframe>
             ) : (
               <img
-                src={fallbackImage}
-                alt="Fallback"
-                className="w-full h-full"
+                src={selectedItem.imageUrl}
+                alt={selectedItem.title}
+                className="max-w-full max-h-full rounded-lg shadow-lg"
               />
             )}
           </motion.div>
