@@ -36,15 +36,13 @@ const About = () => {
     : logoImage;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-800 via-gray-900 to-black text-white flex items-center justify-center px-4 py-16">
-      <div className="bg-white/10 backdrop-blur-md rounded-xl shadow-xl p-10 max-w-4xl w-full text-center border border-white/20">
-        <h2 className="text-4xl font-bold mb-6 text-green-300">About Me</h2>
-        <p className="text-lg text-gray-200 leading-relaxed">
-          Hi, I’m{" "}
-          <span className="font-semibold text-green-400">Karngraphy</span>.
-          Karngraphy isn’t just about capturing weddings—it’s about preserving
-          emotions, unscripted moments, and the quiet magic hidden between the
-          frames.
+    <div className="min-h-screen flex items-center justify-center px-4 py-16 bg-gradient-to-b from-white to-gray-100 text-gray-800">
+      <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-xl p-10 max-w-4xl w-full text-center border border-gray-200">
+        <h2 className="text-4xl font-bold mb-6 text-gray-900">About Me</h2>
+        <p className="text-lg leading-relaxed text-gray-700">
+          Hi, I’m <span className="font-semibold">Karngraphy</span>. Karngraphy
+          isn’t just about capturing weddings—it’s about preserving emotions,
+          unscripted moments, and the quiet magic hidden between the frames.
           <br />
           <br />
           From the laughter that echoes during haldi to the stillness of a
@@ -64,10 +62,10 @@ const About = () => {
           <img
             src={profileImageSrc}
             alt="Profile"
-            className="mx-auto rounded-full shadow-lg w-48 h-48 object-cover border-4 border-green-400 bg-white"
+            className="mx-auto shadow-lg h-48 w-96 object-cover border-4 border-gray-300 bg-white"
             referrerPolicy="no-referrer"
           />
-          <p className="mt-4 text-sm text-gray-300 italic">
+          <p className="mt-4 text-sm text-gray-600 italic">
             Capturing stories, not just pictures.
           </p>
         </div>

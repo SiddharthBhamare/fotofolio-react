@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import bacImage from "../assets/wp2672819-wallpaper-blur-hd.jpg";
+
 import axios from "axios";
 
 interface galleryDataProps {
@@ -68,20 +68,18 @@ const Gallery = () => {
   return (
     <div className="relative min-h-screen py-16 overflow-hidden">
       {/* Background Image */}
-      <div
+      {/* <div
         className="absolute inset-0 bg-cover bg-center z-0"
         style={{
           backgroundImage: `url(${bacImage})`,
         }}
       >
-        <div className="w-full h-full bg-green-900 bg-opacity-60 mix-blend-multiply"></div>
-      </div>
+        <div className="w-full h-full"></div>
+      </div> */}
 
       {/* Main Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
-        <h2 className="text-4xl font-bold text-green-100 mb-12">
-          My Creative Portfolio
-        </h2>
+        <h2 className="text-4xl font-bold mb-12">Reference Work</h2>
 
         {/* Category Filters */}
         <div className="flex flex-wrap justify-center gap-6 mb-10">
@@ -90,8 +88,8 @@ const Gallery = () => {
               key={category}
               className={`px-6 py-2 rounded-full border-2 text-lg transition ${
                 selectedCategory === category
-                  ? "bg-green-500 text-white border-green-500"
-                  : "text-white border-white hover:bg-white hover:text-green-800"
+                  ? "text-black border-black rounded-full text-lg font-semibold hover:scale-105 transform transition duration-300 shadow-lg border-1 border-black border-solid"
+                  : "text-black rounded-full text-lg font-semibold hover:scale-105 transform transition duration-300 shadow-lg border-1 border-black border-solid"
               }`}
               onClick={() => setSelectedCategory(category)}
             >
