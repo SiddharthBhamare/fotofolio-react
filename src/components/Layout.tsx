@@ -16,7 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
       <footer className="bg-gray-800 text-white py-6">
         <div className="max-w-6xl mx-auto text-center">
           <p>
-            &copy; {new Date().getFullYear()} Aarav Photography. All rights
+            &copy; {new Date().getFullYear()} Karnveer Photography. All rights
             reserved.
           </p>
         </div>
