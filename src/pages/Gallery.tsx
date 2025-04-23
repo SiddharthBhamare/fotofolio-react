@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import galleryData from "../data/galleryData";
+import Helper from "../Helper/HelperFunctions";
 
 // Type for gallery item
 interface GalleryItem {
@@ -11,27 +12,19 @@ interface GalleryItem {
   category: string;
 }
 
-// Helper to embed YouTube video from URL
-const handleYouTubeURL = (url: string): string => {
-  const match = url.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
-  );
-  return match ? `https://www.youtube.com/embed/${match[1]}` : "";
-};
-
 const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
-  const categories = [
-    "All",
-    ...new Set(galleryData.map((item) => item.category)),
-  ];
+  const categories = useMemo(() => {
+    return ["All", ...new Set(galleryData.map((item) => item.category))];
+  }, []);
 
-  const filteredImages =
-    selectedCategory === "All"
+  const filteredImages = useMemo(() => {
+    return selectedCategory === "All"
       ? galleryData
       : galleryData.filter((item) => item.category === selectedCategory);
+  }, [selectedCategory]);
 
   return (
     <div className="relative min-h-screen py-16 overflow-hidden">
@@ -77,7 +70,7 @@ const Gallery = () => {
                     <div className="relative w-full h-64 bg-gray-100">
                       {isYouTube ? (
                         <iframe
-                          src={handleYouTubeURL(item.imageUrl!)}
+                          src={Helper.handleYouTubeURL(item.imageUrl!)}
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
                           title={item.title || "YouTube Video"}
@@ -146,17 +139,27 @@ const Gallery = () => {
                 ) : selectedItem.imageUrl?.includes("youtube.com") ||
                   selectedItem.imageUrl?.includes("youtu.be") ? (
                   <iframe
-                    src={handleYouTubeURL(selectedItem.imageUrl)}
+                    src={Helper.handleYouTubeURL(selectedItem.imageUrl)}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     title={selectedItem.title || "YouTube Video"}
                     className="w-full h-full object-cover rounded-lg"
+                    onError={() => {
+                      console.warn(
+                        `Invalid image path: ${selectedItem.imageUrl}`
+                      );
+                    }}
                   ></iframe>
                 ) : selectedItem.imageUrl ? (
                   <img
                     src={selectedItem.imageUrl}
                     alt={selectedItem.title || "Gallery Image"}
                     className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
+                    onError={() => {
+                      console.warn(
+                        `Invalid image path: ${selectedItem.imageUrl}`
+                      );
+                    }}
                   />
                 ) : null}
               </div>
