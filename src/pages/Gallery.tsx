@@ -1,27 +1,33 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Assuming galleryData is imported from a separate file
 import galleryData from "../data/galleryData";
 
+// Type for gallery item
+interface GalleryItem {
+  id: number;
+  title?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  category: string;
+}
+
 // Helper to embed YouTube video from URL
-const handleYouTubeURL = (url: string) => {
-  const videoIdMatch = url.match(
-    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/ // Regex pattern
+const handleYouTubeURL = (url: string): string => {
+  const match = url.match(
+    /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
   );
-  return videoIdMatch ? `https://www.youtube.com/embed/${videoIdMatch[1]}` : "";
+  return match ? `https://www.youtube.com/embed/${match[1]}` : "";
 };
 
 const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedItem, setSelectedItem] = useState<any | null>(null); // You can replace 'any' with the correct type
+  const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
 
   const categories = [
     "All",
-    ...new Set(galleryData.map((item) => item.category)), // Create a unique list of categories
+    ...new Set(galleryData.map((item) => item.category)),
   ];
 
-  // Filter images based on selected category
   const filteredImages =
     selectedCategory === "All"
       ? galleryData
@@ -52,53 +58,59 @@ const Gallery = () => {
         {/* Gallery Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           <AnimatePresence>
-            {filteredImages.map((item) => (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                className="group relative overflow-hidden rounded-lg shadow-lg bg-white hover:shadow-xl transition-all"
-                onClick={() => {
-                  setSelectedItem(item);
-                  console.log(item); // Debugging selected item
-                }}
-              >
-                <div className="relative w-full h-64 bg-gray-100">
-                  {/* If the item is a YouTube URL, embed the video */}
-                  {item.imageUrl.includes("youtube.com") ||
-                  item.imageUrl.includes("youtu.be") ? (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={handleYouTubeURL(item.imageUrl)}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={item.title}
-                      className="w-full h-full"
-                    ></iframe>
-                  ) : (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
+            {filteredImages.map((item) => {
+              const isYouTube =
+                item.imageUrl?.includes("youtube.com") ||
+                item.imageUrl?.includes("youtu.be");
+              if (item.imageUrl || item.videoUrl) {
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                    className="group relative overflow-hidden rounded-lg shadow-lg bg-white hover:shadow-xl transition-all"
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <div className="relative w-full h-64 bg-gray-100">
+                      {isYouTube ? (
+                        <iframe
+                          src={handleYouTubeURL(item.imageUrl!)}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={item.title || "YouTube Video"}
+                          className="w-full h-full"
+                        ></iframe>
+                      ) : item.imageUrl && !item.videoUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title || "Gallery Image"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
+                      {item.videoUrl ? (
+                        <video controls preload="metadata">
+                          <source src={item.videoUrl} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : null}
+                    </div>
 
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-center py-2">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="text-sm">{item.category}</p>
-                </div>
-              </motion.div>
-            ))}
+                    <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-center py-2">
+                      <h3 className="text-lg font-semibold">{item.title}</h3>
+                      <p className="text-sm">{item.category}</p>
+                    </div>
+                  </motion.div>
+                );
+              }
+            })}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Modal for selected item */}
+      {/* Modal */}
       <AnimatePresence>
         {selectedItem && (
           <motion.div
@@ -112,31 +124,42 @@ const Gallery = () => {
               className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center bg-black rounded-lg"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close Button */}
               <button
-                className="absolute top-2 right-2 text-white text-2xl bg-black bg-opacity-60 rounded-full px-3 py-1 hover:bg-opacity-80 transition"
                 onClick={() => setSelectedItem(null)}
+                className="absolute top-2 right-2 z-20 text-white text-4xl font-bold bg-black bg-opacity-60 px-3 py-1 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-80"
               >
                 &times;
               </button>
 
-              {selectedItem.imageUrl.includes("youtube.com") ||
-              selectedItem.imageUrl.includes("youtu.be") ? (
-                <iframe
-                  width="100%"
-                  height="500"
-                  src={handleYouTubeURL(selectedItem.imageUrl)}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={selectedItem.title}
-                  className="rounded-lg"
-                ></iframe>
-              ) : (
-                <img
-                  src={selectedItem.imageUrl}
-                  alt={selectedItem.title}
-                  className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
-                />
-              )}
+              {/* Content */}
+              <div className="relative w-full h-full flex items-center justify-center">
+                {selectedItem.videoUrl ? (
+                  <video
+                    controls
+                    preload="metadata"
+                    className="w-full h-full object-fill rounded-lg"
+                  >
+                    <source src={selectedItem.videoUrl} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                ) : selectedItem.imageUrl?.includes("youtube.com") ||
+                  selectedItem.imageUrl?.includes("youtu.be") ? (
+                  <iframe
+                    src={handleYouTubeURL(selectedItem.imageUrl)}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={selectedItem.title || "YouTube Video"}
+                    className="w-full h-full object-cover rounded-lg"
+                  ></iframe>
+                ) : selectedItem.imageUrl ? (
+                  <img
+                    src={selectedItem.imageUrl}
+                    alt={selectedItem.title || "Gallery Image"}
+                    className="max-w-full max-h-[80vh] rounded-lg shadow-lg"
+                  />
+                ) : null}
+              </div>
             </div>
           </motion.div>
         )}

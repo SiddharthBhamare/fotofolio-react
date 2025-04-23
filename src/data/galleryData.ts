@@ -65,6 +65,12 @@ const galleryData = [
       title: "Candid Capture",
       imageUrl: "./Images/10.jpg",
     },
+    {
+      id: 10,
+      category: "Wedding Candid",
+      title: "Candid Capture",
+      videoUrl: "",
+    }
   ];
   
   export default galleryData;
